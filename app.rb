@@ -11,7 +11,7 @@ end
 private
 
 def status
-  @env['REQUEST_PATH'] == '/time' ? 200 : 404
+  200
 end
 
 def headers
@@ -19,7 +19,5 @@ def headers
 end
 
 def body
-  return ['404 Not found'] if status == 404
-
   ["Good day!\n"]
 end
