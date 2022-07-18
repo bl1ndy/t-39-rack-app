@@ -6,44 +6,47 @@ class TimeApp
   def initialize(_app); end
 
   def call(env)
-    @request = Rack::Request.new(env)
-    @formats = @request.params['format']
-    formatter = TimeFormatter.new(Time.now, @formats)
-    @formatted = formatter.format
-    @unknown_formats = formatter.unknown_formats
+    request = Rack::Request.new(env)
 
-    response
+    if request_valid?(request)
+      handle(request)
+    else
+      response("Page not found\n", 404, headers)
+    end
   end
 
   private
 
-  def response
-    @response = Rack::Response.new
-    status
-    headers
-    body
-    @response.finish
+  def handle(request)
+    formats = request.params['format']
+
+    if formats.nil?
+      response("Format not found\n", 400, headers)
+    else
+      formatter = TimeFormatter.new(Time.now, formats)
+      @formatted = formatter.format
+      @unknown_formats = formatter.unknown_formats
+      response(body, status, headers)
+    end
+  end
+
+  def response(body, status, headers)
+    Rack::Response.new(body, status, headers).finish
   end
 
   def status
-    @response.status = 404 and return if @request.path != '/time'
-    @response.status = 400 and return if formats_invalid?
-
-    @response.status = 200
+    @unknown_formats.any? ? 400 : 200
   end
 
   def headers
-    @response.set_header('Content-Type', 'text/plain')
+    { 'Content-Type' => 'text/plain' }
   end
 
   def body
-    @response.write("Page not found\n") and return if @response.status == 404
-    @response.write("Format not found\n") and return if @formats.nil?
-
-    @response.write(@unknown_formats.any? ? "Unknown time format #{@unknown_formats}\n" : @formatted)
+    @unknown_formats.any? ? "Unknown time format #{@unknown_formats}\n" : @formatted
   end
 
-  def formats_invalid?
-    @formats.nil? || @unknown_formats.any?
+  def request_valid?(request)
+    request.path == '/time'
   end
 end
