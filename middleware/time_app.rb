@@ -20,13 +20,12 @@ class TimeApp
   def handle(request)
     formats = request.params['format']
     formatter = TimeFormatter.new(Time.now, formats)
-    formatted = formatter.call
-    unknown_formats = formatter.unknown_formats
+    formatter.call
 
-    if unknown_formats.any?
-      response("Unknown time format #{unknown_formats}\n", 400, headers)
+    if formatter.valid?
+      response(formatter.result, 200, headers)
     else
-      response(formatted, 200, headers)
+      response("Unknown time format #{formatter.unknown_formats}\n", 400, headers)
     end
   end
 

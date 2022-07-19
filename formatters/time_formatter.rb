@@ -20,19 +20,16 @@ class TimeFormatter
   attr_reader :unknown_formats
 
   def call
-    check_formats
-    format
-  end
-
-  private
-
-  def check_formats
     @formats.split(',').each do |format|
       FORMATS[format.to_sym] ? @valid_formats << FORMATS[format.to_sym] : @unknown_formats << format
     end
   end
 
-  def format
+  def result
     @time.strftime(@valid_formats.join('-'))
+  end
+
+  def valid?
+    @unknown_formats.empty?
   end
 end
