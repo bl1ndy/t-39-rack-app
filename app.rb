@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class App
-  def call(env)
+  def call(_env)
     [status, headers, body]
   end
 end
