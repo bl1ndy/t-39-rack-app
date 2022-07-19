@@ -19,14 +19,14 @@ class TimeApp
 
   def handle(request)
     formats = request.params['format']
+    formatter = TimeFormatter.new(Time.now, formats)
+    formatted = formatter.call
+    unknown_formats = formatter.unknown_formats
 
-    if formats.nil?
-      response("Format not found\n", 400, headers)
+    if unknown_formats.any?
+      response("Unknown time format #{unknown_formats}\n", 400, headers)
     else
-      formatter = TimeFormatter.new(Time.now, formats)
-      @formatted = formatter.format
-      @unknown_formats = formatter.unknown_formats
-      response(body, status, headers)
+      response(formatted, 200, headers)
     end
   end
 
@@ -34,16 +34,8 @@ class TimeApp
     Rack::Response.new(body, status, headers).finish
   end
 
-  def status
-    @unknown_formats.any? ? 400 : 200
-  end
-
   def headers
     { 'Content-Type' => 'text/plain' }
-  end
-
-  def body
-    @unknown_formats.any? ? "Unknown time format #{@unknown_formats}\n" : @formatted
   end
 
   def request_valid?(request)

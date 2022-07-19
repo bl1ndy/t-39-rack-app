@@ -13,18 +13,26 @@ class TimeFormatter
   def initialize(time, formats = '')
     @time = time
     @formats = formats || ''
+    @valid_formats = []
     @unknown_formats = []
   end
 
   attr_reader :unknown_formats
 
-  def format
-    valid_formats = []
+  def call
+    check_formats
+    format
+  end
 
-    @formats.split(',').each do |part|
-      FORMATS[part.to_sym] ? valid_formats << FORMATS[part.to_sym] : unknown_formats << part
+  private
+
+  def check_formats
+    @formats.split(',').each do |format|
+      FORMATS[format.to_sym] ? @valid_formats << FORMATS[format.to_sym] : @unknown_formats << format
     end
+  end
 
-    @time.strftime(valid_formats.join('-'))
+  def format
+    @time.strftime(@valid_formats.join('-'))
   end
 end
